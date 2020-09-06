@@ -1,0 +1,32 @@
+DROP DATABASE IF EXISTS tracker_db;
+
+CREATE DATABASE tracker_db;
+
+USE tracker_db;
+
+CREATE table department(
+id INTEGER NOT NULL AUTO_INCREMENT,
+name VARCHAR(50) NOT NULL,
+PRIMARY KEY (id)
+);
+
+CREATE table role(
+id INTEGER NOT NULL AUTO_INCREMENT,
+title VARCHAR(50) NOT NULL,
+salary DECIMAL NOT NULL,
+department_id INTEGER NOT NULL,
+PRIMARY KEY (id)
+);
+
+CREATE table employee(
+id INTEGER NOT NULL AUTO_INCREMENT,
+first_name VARCHAR(30) NOT NULL,
+last_name VARCHAR(30) NOT NULL,
+role_id INTEGER,
+manager_id INTEGER,
+PRIMARY KEY (id)
+);
+
+SELECT*FROM department;
+SELECT*FROM role;
+SELECT*FROM employee;
