@@ -18,7 +18,7 @@ var connection = mysql.createConnection({
    // making connection or throw error
    connection.connect(function(err) {
     if (err) throw err;
-    console.log("connected as id " + connection.threadId);
+    // console.log("connected as id " + connection.threadId);
     afterConnection();
   });
 
@@ -36,7 +36,8 @@ const afterConnection = function () {
                 "View Department",
                 "View Role",
                 "View Employee",
-                "Update Employee Role"]
+                "Update Employee Role",
+                "Exit"]
         },  
     ]).then(answers => {
         console.table(answers);
@@ -72,86 +73,95 @@ const afterConnection = function () {
 
             case "Update Employee Role":
                 updateEmployeeRole();
-                break; 
+                break;
+
+            case "Exit":
+            connection.end();;
+            break;
         }
         
     
     })
 }
-
         
 function viewAllEmployees() {
   console.log("Selecting all employees...\n");
-  connection.query("SELECT * FROM employee", function(err, res) {
+  connection.query("SELECT employee.id, employee.first_name, employee.last_name, role.title, department.department_name, role.salary, employee.manager_id FROM department INNER JOIN role ON department.id = role.department_id INNER JOIN employee ON employee.role_id = role.id",
+  function(err, res) {
     if (err) throw err;
     // Log all results of the SELECT statement
     console.table(res);
-    connection.end();
+    afterConnection();
   });
 }
 
 function addDepartment() {
-  inquirer.prompt({
+  inquirer.prompt([
+{
       type: "input",
       message: "Enter Department Name",
       name: "department"
-  })
+  }
+])
   .then(function(answers) {
       connection.query(
           "INSERT INTO department SET ?",
           {
-              name: answers.department
+              department_name: answers.department
           },
           function(err, answers) {
               if (err) {
                   throw err;
               }
+              console.log(answers);
+              afterConnection();
           }
-      ),
-      console.table(answers);
-      afterConnection();
+      )
+      
   })
 }
 
 function addRole() {
-    inquirer.prompt({
+    inquirer
+    .prompt([
+      {
         type: "input",
         message: "Enter employee title",
         name: "title"
-    },
-    {
+      },
+      {
         type: "input",
         message: "Enter employee salary",
         name: "salary"
-    },
-    {
-    type: "input",
-    message: "Enter employee department ID",
-    name: "departmentid"
-    },
-    
-    )
+      },
+      {
+        type: "input",
+        message: "Enter employee department id",
+        name: "departmentid"
+      }
+    ])
     .then(function(answers) {
-        connection.query(
-            "INSERT INTO role SET ?",
-            {
-                title: answers.title,
-                salary: answers.salary,
-                department_id: answers.departmentid
-            },
-            function(err, answers) {
-                if (err) {
-                    throw err;
-                }
-            }
-        ),
-        console.table(answers);
-        afterConnection();
-    })
+      connection.query(
+        "INSERT INTO role SET ?",
+        {
+          title: answers.title,
+          salary: answers.salary,
+          department_id: answers.departmentid
+        },
+        function(err, answers) {
+          if (err) {
+            throw err;
+          }
+          console.table(answers);
+        }
+      );
+      afterConnection();
+    });
 }
 
 function addEmployee() {
-    inquirer.prompt({
+    inquirer.prompt([
+    {
         type: "input",
         message: "Enter employee first name",
         name: "firstname"
@@ -171,8 +181,7 @@ function addEmployee() {
         message: "Enter employee manager ID",
         name: "managerid"
     },
-
-    )
+])
     .then(function(answers) {
         connection.query(
             "INSERT INTO employee SET ?",
@@ -224,45 +233,43 @@ function viewEmployee() {
 }
 
 function updateEmployeeRole() {
-  console.log("Updating employee role...\n");
-  var query = connection.query(
-    "UPDATE role SET ? WHERE ?",
-    [
-      {
-        title: answers.title
-      },
-      {
-        salary: answers.salary
-      },
-      {
-        department_id: answers.departmentid
+    let allemp = [];
+    connection.query("SELECT * FROM employee", function(err, answers) {
+      for (let i = 0; i < answers.length; i++) {
+        let employeeString = answers[i].id + " " + answers[i].first_name + " " + answers[i].last_name;
+        allemp.push(employeeString);
       }
-    ],
-    function(err, res) {
-      if (err) throw err;
-      console.log(res.affectedRows + " role updated!\n");
-      // Call deleteProduct AFTER the UPDATE completes
-    //   deleteEmployee();
-    }
-  );
-
-  // logs the actual query being run
-  console.log(query.sql);
-  afterConnection();
+  
+      inquirer.prompt([
+          {
+            type: "list",
+            name: "updateEmpRole",
+            message: "Select employee to update role..",
+            choices: allemp
+          },
+          {
+            type: "list",
+            message: "Select new role..",
+            choices: ["Manager", "Employee"],
+            name: "newrole"
+          }
+        ])
+        .then(function(answers) {
+          console.log("Waiting to update..", answers);
+          const idToUpdate = {};
+          idToUpdate.employeeId = parseInt(answers.updateEmpRole.split("")[0]);
+          if (answers.newrole === "Manager") {
+            idToUpdate.role_id = 1;
+          } else if (answer.newrole === "Employee") {
+            idToUpdate.role_id = 2;
+          }
+          connection.query(
+            "UPDATE employee SET role_id = ? WHERE id = ?",
+            [idToUpdate.role_id, idToUpdate.employeeId],
+            function(err, data) {
+              afterConnection();
+            }
+          );
+        });
+    });
 }
-
-// function deleteEmployee() {
-//   console.log("Deleting employee...\n");
-//   connection.query(
-//     "DELETE FROM employee WHERE ?",
-//     {
-//       id: 0
-//     },
-//     function(err, res) {
-//       if (err) throw err;
-//       console.log(res.affectedRows + " products deleted!\n");
-//       // Call readProducts AFTER the DELETE completes
-//       readEmployee();
-//     }
-//   );
-// }

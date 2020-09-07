@@ -6,7 +6,7 @@ USE tracker_db;
 
 CREATE table department(
 id INTEGER NOT NULL AUTO_INCREMENT,
-name VARCHAR(50) NOT NULL,
+department_name VARCHAR(50) NOT NULL,
 PRIMARY KEY (id)
 );
 
@@ -30,10 +30,18 @@ FOREIGN KEY (role_id) REFERENCES role(id),
 FOREIGN KEY (manager_id) REFERENCES employee(id)
 );
 
-SELECT*FROM department;
-SELECT*FROM role;
+
+SELECT title, salary, department_name
+FROM department
+INNER JOIN role
+ON department.id = role.department_id;
+
+SELECT employee.id, employee.first_name, employee.last_name, role.title, department.department_name, role.salary, employee.manager_id
+FROM department
+INNER JOIN role
+ON department.id = role.department_id
+INNER JOIN employee
+ON employee.role_id = role.id;
+
 SELECT*FROM employee;
 
-SELECT id, title, salary, department_id
-FROM role
-INNER JOIN role ON employee.role_id = role.id;
