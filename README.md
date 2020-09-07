@@ -1,1 +1,2 @@
-# employeetracker
+# Employee Tracker
+## This is a command line application for users to update, view, and delete employees, roles, and departments, as well as view the total utilized budget of a department. This tracker utilizes Node, Inquirer, and MySQL.
