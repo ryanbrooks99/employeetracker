@@ -1,9 +1,28 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
-var consoletable = require("console.table");
-var connection = ("connection.js")
+var consoletable = require("console.table")
 
-const start = function () {
+var connection = mysql.createConnection({
+    host: "localhost",
+  
+    // Setting port
+    port: 3306,
+  
+    // username
+    user: "root",
+  
+    // password
+    password: "rootroot",
+    database: "tracker_db"
+  });
+   // making connection or throw error
+   connection.connect(function(err) {
+    if (err) throw err;
+    console.log("connected as id " + connection.threadId);
+    afterConnection();
+  });
+
+const afterConnection = function () {
     inquirer.prompt([
         {    
             type: "list",   
@@ -90,7 +109,7 @@ function addDepartment() {
           }
       ),
       console.table(answers);
-      start();
+      afterConnection();
   })
 }
 
@@ -127,7 +146,7 @@ function addRole() {
             }
         ),
         console.table(answers);
-        start();
+        afterConnection();
     })
 }
 
@@ -170,46 +189,80 @@ function addEmployee() {
             }
         ),
         console.table(answers);
-        start();
+        afterConnection();
     })
 }
 
-function updateEmployee() {
-  console.log("Updating employee...\n");
+function viewDepartment() {
+    console.log("Selecting all departments...\n");
+    connection.query("SELECT * FROM department", function(err, res) {
+      if (err) throw err;
+      // Log all results of the SELECT statement
+      console.table(res);
+      afterConnection();
+    });
+}
+
+function viewRole() {
+    console.log("Selecting all roles...\n");
+    connection.query("SELECT * FROM role", function(err, res) {
+      if (err) throw err;
+      // Log all results of the SELECT statement
+      console.table(res);
+      afterConnection();
+    });
+}
+
+function viewEmployee() {
+    console.log("Selecting all employees...\n");
+    connection.query("SELECT * FROM employee", function(err, res) {
+      if (err) throw err;
+      // Log all results of the SELECT statement
+      console.table(res);
+      afterConnection();
+    });
+}
+
+function updateEmployeeRole() {
+  console.log("Updating employee role...\n");
   var query = connection.query(
-    "UPDATE products SET ? WHERE ?",
+    "UPDATE role SET ? WHERE ?",
     [
       {
-        first_name: ""
+        title: answers.title
       },
       {
-        last_name: ""
+        salary: answers.salary
+      },
+      {
+        department_id: answers.departmentid
       }
     ],
     function(err, res) {
       if (err) throw err;
-      console.log(res.affectedRows + " products updated!\n");
+      console.log(res.affectedRows + " role updated!\n");
       // Call deleteProduct AFTER the UPDATE completes
-      deleteEmployee();
+    //   deleteEmployee();
     }
   );
 
   // logs the actual query being run
   console.log(query.sql);
+  afterConnection();
 }
 
-function deleteEmployee() {
-  console.log("Deleting employee...\n");
-  connection.query(
-    "DELETE FROM employee WHERE ?",
-    {
-      id: 0
-    },
-    function(err, res) {
-      if (err) throw err;
-      console.log(res.affectedRows + " products deleted!\n");
-      // Call readProducts AFTER the DELETE completes
-      readEmployee();
-    }
-  );
-}
+// function deleteEmployee() {
+//   console.log("Deleting employee...\n");
+//   connection.query(
+//     "DELETE FROM employee WHERE ?",
+//     {
+//       id: 0
+//     },
+//     function(err, res) {
+//       if (err) throw err;
+//       console.log(res.affectedRows + " products deleted!\n");
+//       // Call readProducts AFTER the DELETE completes
+//       readEmployee();
+//     }
+//   );
+// }
